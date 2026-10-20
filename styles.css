@@ -4,7 +4,7 @@
   --ink: #292924;
   --muted: #72726b;
   --font-display: "Josefin Sans", "Trebuchet MS", sans-serif;
-  --font-body: "Bitter", Georgia, serif;
+  --font-body: "Alegreya", Georgia, serif;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
