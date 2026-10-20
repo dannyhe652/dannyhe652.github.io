@@ -1,6 +1,6 @@
 # Yiyang He
 
-A minimal personal website for **Art, Music, Yoyo, and Math**. Pure white background, Bitter headings paired with Fira Sans body text, and a full-proportion artwork viewer. Static HTML, CSS, and JavaScript; no build step.
+A minimal personal website for **Art, Music, Yoyo, and Math**. Pure white background, Josefin Sans for large text paired with Bitter for smaller text, and a full-proportion artwork viewer. Static HTML, CSS, and JavaScript; no build step.
 
 ## Preview
 
@@ -45,7 +45,7 @@ Without JavaScript, all artwork and all four sections remain visible. The origin
 - Edit the Music, Yoyo, and Math sections in `index.html` to add recordings, videos, and mathematical notes. They intentionally contain no invented projects or achievements.
 - Add artwork by copying a complete `figure.artwork` block into the gallery and setting its `data-series` to `chain`, `light`, or `order`.
 - Update static image numbering, series descriptions in `script.js`, and image width/height and alt text when changing images. The interactive counter calculates its total automatically.
-- Typography and layout are in `styles.css`. Bitter and Fira Sans load from Google Fonts, with Georgia and Arial as their respective offline fallbacks.
+- Typography and layout are in `styles.css`. Josefin Sans and Bitter load from Google Fonts, with Trebuchet MS and Georgia as their respective offline fallbacks.
 
 ## Contact
 
