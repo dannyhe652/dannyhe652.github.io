@@ -3,10 +3,12 @@
   --paper: #fff;
   --ink: #292924;
   --muted: #72726b;
+  --font-display: "Bitter", Georgia, serif;
+  --font-body: "Fira Sans", Arial, sans-serif;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Alegreya", Georgia, serif; font-size: 17px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 a { color: inherit; text-decoration: none; }
 a, button { -webkit-tap-highlight-color: transparent; }
 a:hover { color: var(--muted); }
@@ -15,6 +17,7 @@ a:focus-visible, button:focus-visible { outline: 1px solid var(--ink); outline-o
 .skip-link { position: fixed; top: -100px; left: 20px; padding: 10px; background: #fff; z-index: 10; }
 .skip-link:focus { top: 10px; }
 .sidebar { position: fixed; top: 65px; left: 5vw; width: 220px; }
+.identity, h1, .intro, figcaption em { font-family: var(--font-display); }
 .identity { font-size: 31px; line-height: 1.1; letter-spacing: -.6px; }
 .discipline { margin: 10px 0 52px; color: var(--muted); font-size: 14px; }
 nav { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
