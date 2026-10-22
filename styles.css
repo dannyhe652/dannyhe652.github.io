@@ -118,8 +118,7 @@ footer { display: flex; justify-content: space-between; gap: 15px; margin: auto 
 .post-body :is(th, td) { padding: .55em .9em; border: 1px solid #e6e6df; }
 .post-body th { font-weight: 500; background: #f8f8f5; }
 .post-body hr { border: 0; border-top: 1px solid #e6e6df; margin: 2em 0; }
-.post-body div.tex-math { margin: .75em 0; overflow-x: auto; }
-.post-body mjx-container[display="true"] { margin: 0; }
+.post-body div.tex-math { margin: 1.5em 0; overflow-x: auto; }
 .post-body .tex-math { white-space: pre-wrap; }
 .post-body .math-environment { margin: 1.8em 0; padding-left: 1.2em; border-left: 2px solid #d6d6ce; }
 .post-body .math-environment-label { margin: 0 0 .5em; font-weight: 500; }
