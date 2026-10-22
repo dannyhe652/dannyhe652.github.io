@@ -1,4 +1,8 @@
 .DS_Store
 .studio/
 __pycache__/
-assets/
+assets/*
+!assets/vendor/
+assets/vendor/*
+!assets/vendor/markdown-it.min.js
+!assets/vendor/markdown-it.LICENSE.txt

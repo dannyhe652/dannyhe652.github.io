@@ -62,14 +62,57 @@ The browser opens at **http://127.0.0.1:8765**. Keep the terminal open while usi
 
 Published posts appear beneath existing artwork or in their corresponding Music, Yoyo, and Math pages. Select a published entry in the sidebar to edit and republish it. Discarding a local draft does not delete a published post. Original art collections are preserved; uploaded art appears as new posts, not as edits to the original gallery.
 
-**Formatting:** `# Heading`, `**bold**`, `*italic*`, `- list items`, and blank lines for paragraphs. HTML is displayed as text, never executed. Use `\(x^2\)` for inline math and `\[x^2\]` for display math. MathJax loads from jsDelivr only for posts containing math; offline, the original TeX stays visible. Media embeds need an internet connection and host permission to embed.
+### Markdown and LaTeX
+
+The studio preview and public posts share the same Markdown renderer (locally bundled markdown-it; no build step or internet needed for Markdown):
+
+- `#` through `######` headings, `**bold**`, `*italic*`, and `~~strikethrough~~`.
+- Bulleted and numbered lists, including nested lists (indent nested items).
+- `> blockquotes`, `---` horizontal rules, `[links](https://example.com)`, and `![description](https://example.com/image.jpg)`.
+- Inline code with backticks, fenced code blocks with triple backticks, and pipe tables.
+- Blank lines separate paragraphs; two trailing spaces or a backslash before a newline makes a hard line break.
+- HTML is displayed as text, never executed; unsafe link protocols are rejected.
+
+Use `\(x^2\)` or `$x^2$` for inline math, and `\[...\]` or `$$...$$` for display math. Display delimiters can sit on their own lines; multiline equations, blank lines inside display blocks, fractions, matrices, and aligned equations are supported. Math is kept untouched by Markdown, and delimiters in code stay literal. Escape a literal dollar as `\$`; single-dollar math must not have whitespace immediately inside its delimiters.
+
+```tex
+An inline identity: \(e^{i\pi} + 1 = 0\).
+
+\[
+\begin{aligned}
+f(x) &= \frac{x^2}{2} \\
+f'(x) &= x
+\end{aligned}
+\]
+```
+
+### Mathematical environments
+
+Use `\begin{name}` and `\end{name}` on their own lines for `definition`, `proof`, `theorem`, `problem`, `lemma`, `corollary`, and `conjecture`. An optional `[Title]` follows the opening delimiter. (The spelling `corolloary` is also accepted and displayed as “Corollary”.)
+
+```tex
+\begin{theorem}[Pythagoras]
+For a right triangle with legs $a$, $b$ and hypotenuse $c$:
+\[
+a^2 + b^2 = c^2.
+\]
+\end{theorem}
+
+\begin{proof}
+Write your **argument** here. Lists, paragraphs, and equations work normally.
+\end{proof}
+```
+
+These blocks have labeled headings and subtle borders; proofs end with □. Environments may be nested, are not automatically numbered, and render identically in Studio preview and public posts. Delimiters inside code stay literal. Unclosed or mismatched environments are left as ordinary text.
+
+MathJax loads from jsDelivr only for posts containing math; offline, the original TeX stays visible. Media embeds need an internet connection and host permission to embed.
 
 ### One-time GitHub setup
 
 The new renderer and studio files must be committed once before content publishing can work. Review these changes, then commit and push them on the branch configured for GitHub Pages:
 
 ```sh
-git add .gitignore README.md index.html styles.css posts.js content/posts.json studio/
+git add .gitignore README.md index.html styles.css posts.js assets/vendor/ content/posts.json studio/
 git commit -m "feat: add local publishing studio"
 git push origin HEAD
 ```
@@ -90,6 +133,7 @@ Run integration tests (temporary repositories only):
 
 ```sh
 python3 -m unittest discover -s studio -p 'test_*.py' -v
+node --test tests/posts.test.js
 node --check posts.js
 node --check studio/studio.js
 ```
@@ -109,7 +153,7 @@ node --check studio/studio.js
 ## Publish on GitHub Pages
 
 1. Create a public repository named `dannyhe652.github.io` for an account-root website, or use a project repository.
-2. Push this repository, including `index.html`, `styles.css`, `script.js`, `posts.js`, `content/`, `.nojekyll`, any published `uploads/`, and **all nine JPG files from the root directory**. Keep their names unchanged. Never upload `.studio/`.
+2. Push this repository, including `index.html`, `styles.css`, `script.js`, `posts.js`, `assets/vendor/`, `content/`, `.nojekyll`, any published `uploads/`, and **all nine JPG files from the root directory**. Keep their names unchanged. Never upload `.studio/`.
 3. Under **Settings → Pages**, choose **Deploy from a branch → main → / (root)**.
 4. After deployment, the account-root website will be available at https://dannyhe652.github.io. A project repository uses https://dannyhe652.github.io/REPOSITORY-NAME/ instead.
 

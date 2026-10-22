@@ -6,6 +6,7 @@
 <base href="/">
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;1,400&family=Josefin+Sans:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/studio/studio.css">
+<script src="/assets/vendor/markdown-it.min.js" defer></script>
 <script src="/posts.js" defer></script><script src="/studio/studio.js" defer></script>
 </head>
 <body>
@@ -25,7 +26,8 @@
 <label class="sr-only" for="title">Post title</label><input id="title" name="title" placeholder="Give it a title" maxlength="200" required>
 <label for="summary">A short introduction <span>(optional)</span></label><textarea id="summary" name="summary" rows="2" maxlength="500" placeholder="A few words to set the scene…"></textarea>
 <label for="body">Your post</label><textarea id="body" name="body" rows="12" placeholder="Start writing here…"></textarea>
-<p class="field-note">Use # headings, **bold**, *italic*, and - lists. For math, use \(x^2\) inline or \[x^2\] on its own line.</p>
+<p class="field-note">Markdown: # headings, **bold**, *italic*, ~~strikethrough~~, [links](https://…), lists, &gt; quotes, tables, and fenced code blocks. Math: \(x^2\) or $x^2$ inline; \[x^2\] or $$x^2$$ for display equations. Preview before publishing.</p>
+<p class="field-note">Math environments: \begin{theorem}[Optional title] on its own line, then your text, then \end{theorem} on its own line. Also supports definition, proof, problem, lemma, corollary, and conjecture. Markdown and equations work inside; proofs end with □.</p>
 <div class="attachments"><h3>Photos & media</h3><p id="media-help">Add artwork or photographs. Your original proportions are preserved.</p>
 <label class="upload-button" for="photos">+ Add photos<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 <p class="field-note">JPEG, PNG, WebP · Up to 10 MB each · Add a description for each image.</p>

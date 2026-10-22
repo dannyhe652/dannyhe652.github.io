@@ -93,7 +93,7 @@ class Handler(SimpleHTTPRequestHandler):
         # Never serve Git metadata, drafts, server sources, or arbitrary files.
         if path == '/':
             self.path = '/studio/index.html'
-        elif path not in ['/index.html', '/styles.css', '/script.js', '/posts.js', '/studio/index.html', '/studio/studio.css', '/studio/studio.js', '/content/posts.json'] and not re.fullmatch(r'/uploads/[a-f0-9]{32}\.(jpg|png|webp)', path) and not re.fullmatch(r'/[a-f0-9]{32}\.jpg', path):
+        elif path not in ['/index.html', '/styles.css', '/script.js', '/posts.js', '/assets/vendor/markdown-it.min.js', '/studio/index.html', '/studio/studio.css', '/studio/studio.js', '/content/posts.json'] and not re.fullmatch(r'/uploads/[a-f0-9]{32}\.(jpg|png|webp)', path) and not re.fullmatch(r'/[a-f0-9]{32}\.jpg', path):
             return self.reply({'error': 'Not found'}, 404)
         return super().do_GET()
 
@@ -140,10 +140,10 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.reply({'post': post, 'message': 'Draft saved on this computer.'})
             # The renderer must be in Git before content-only publishing can work.
             try:
-                git('ls-files', '--error-unmatch', 'posts.js', 'content/posts.json')
+                git('ls-files', '--error-unmatch', 'posts.js', 'content/posts.json', 'assets/vendor/markdown-it.min.js')
             except ValueError:
                 raise ValueError('One-time setup needed: commit the studio and website integration files first. See README.md. Your draft is saved.')
-            if git('diff', 'HEAD', '--', 'index.html', 'styles.css', 'posts.js'):
+            if git('diff', 'HEAD', '--', 'index.html', 'styles.css', 'posts.js', 'assets/vendor/markdown-it.min.js'):
                 raise ValueError('Commit the website integration changes first so published posts can be displayed. See README.md. Your draft is saved.')
             # Refuse to absorb other staged work into a publishing commit.
             if git('diff', '--', 'content/posts.json'):

@@ -29,7 +29,10 @@ class StudioTests(unittest.TestCase):
         studio.git('config', 'user.name', 'Test')
         studio.save_json(studio.ROOT / 'content/posts.json', [])
         (studio.ROOT / 'posts.js').write_text('// Installed renderer')
-        studio.git('add', 'content/posts.json', 'posts.js')
+        vendor = studio.ROOT / 'assets/vendor/markdown-it.min.js'
+        vendor.parent.mkdir(parents=True)
+        vendor.write_text('// Installed Markdown parser')
+        studio.git('add', 'content/posts.json', 'posts.js', 'assets/vendor/markdown-it.min.js')
         studio.git('commit', '-m', 'Initial content')
         studio.git('remote', 'add', 'origin', str(self.remote))
         self.server = HTTPServer(('127.0.0.1', 0), studio.Handler)
@@ -90,6 +93,16 @@ class StudioTests(unittest.TestCase):
         self.assertIn(image, tracked)
         self.assertNotIn(unused, tracked)
         self.assertEqual(self.request('/api/upload', {'data': base64.b64encode(b'<svg/>').decode()})[0], 400)
+
+    def test_markdown_parser_served(self):
+        self.assertEqual(self.request('/assets/vendor/markdown-it.min.js')[0], 200)
+        self.assertEqual(self.request('/assets/vendor/private.txt')[0], 404)
+
+    def test_refuse_uncommitted_markdown_parser(self):
+        (studio.ROOT / 'assets/vendor/markdown-it.min.js').write_text('// Changed parser')
+        code, result = self.request('/api/publish', self.post)
+        self.assertEqual(code, 400)
+        self.assertIn('integration changes', result['error'])
 
     def test_security_boundaries(self):
         self.assertEqual(self.request('/api/save', self.post, {'Origin': 'https://evil.example'})[0], 403)
