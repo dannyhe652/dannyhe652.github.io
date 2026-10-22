@@ -2,7 +2,7 @@ const form = document.querySelector('#editor');
 const status = document.querySelector('#status');
 let token, currentId = null, images = [], dirty = false, busy = false;
 const fields = ['category', 'title', 'summary', 'body', 'mediaUrl'];
-const names = { art: 'Art', music: 'Music', yoyo: 'Yoyo', math: 'Math' };
+const names = { art: 'Art', music: 'Music', yoyo: 'Yoyo & Card Magic', math: 'Math' };
 function message(text, error = false) { status.textContent = text; status.classList.toggle('error', error); }
 function changed() { dirty = true; document.querySelector('#save-state').textContent = 'Unsaved changes'; }
 function value() { return Object.fromEntries(fields.map(key => [key, form.elements[key].value])) ; }
