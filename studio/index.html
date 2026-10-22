@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yiyang He — Studio</title>
+<base href="/">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;1,400&family=Josefin+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/studio/studio.css">
+<script src="/posts.js" defer></script><script src="/studio/studio.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#editor">Skip to editor</a>
+<header class="sidebar">
+<a class="identity" href="/">Yiyang He</a><p class="discipline">A private publishing studio</p>
+<nav aria-label="Studio"><button id="new" class="new-post">+ New post</button></nav>
+<div class="library"><h2>On this computer</h2><div id="drafts"></div><h2>Published</h2><div id="published"></div></div>
+<div class="sidebar-contact"><a href="/index.html" target="_blank" rel="noopener">View website ↗</a><span>Local · Only on this computer</span></div>
+</header>
+<main>
+<header class="section-header"><h1>Studio / <span id="category-label">Art</span></h1><span class="edition">WRITE · COLLECT · SHARE</span></header>
+<div class="studio-heading"><h2>A place for new work.</h2><p>From your notebook to your website.</p></div>
+<div class="editor-tools"><div class="tabs" role="group" aria-label="Editor mode"><button id="write" aria-pressed="true">Write</button><button id="preview-button" aria-pressed="false">Preview</button></div><span id="save-state">New draft · Not saved</span></div>
+<form id="editor">
+<div class="metadata"><label>Collection<select name="category"><option value="art">Art</option><option value="music">Music</option><option value="yoyo">Yoyo</option><option value="math">Math</option></select></label></div>
+<label class="sr-only" for="title">Post title</label><input id="title" name="title" placeholder="Give it a title" maxlength="200" required>
+<label for="summary">A short introduction <span>(optional)</span></label><textarea id="summary" name="summary" rows="2" maxlength="500" placeholder="A few words to set the scene…"></textarea>
+<label for="body">Your post</label><textarea id="body" name="body" rows="12" placeholder="Start writing here…"></textarea>
+<p class="field-note">Use # headings, **bold**, *italic*, and - lists. For math, use \(x^2\) inline or \[x^2\] on its own line.</p>
+<div class="attachments"><h3>Photos & media</h3><p id="media-help">Add artwork or photographs. Your original proportions are preserved.</p>
+<label class="upload-button" for="photos">+ Add photos<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+<p class="field-note">JPEG, PNG, WebP · Up to 10 MB each · Add a description for each image.</p>
+<div id="images"></div>
+<label for="mediaUrl">Video, recording, or music link <span>(optional)</span></label><input id="mediaUrl" name="mediaUrl" type="url" placeholder="https://…" maxlength="2000"><p class="field-note">YouTube and Vimeo embed as video. Direct .mp3, .wav, .ogg, .m4a, .mp4, and .webm links play inline. Other links open at the source.</p>
+</div>
+</form>
+<section id="preview" aria-label="Post preview" hidden></section>
+<div class="publish-bar"><button type="button" id="save">Save draft</button><button type="button" id="delete">Discard local draft</button><button type="button" id="publish" class="primary">Publish to website ↗</button><button type="button" id="retry" hidden>Retry push</button></div>
+<p id="status" role="status" aria-live="polite">Drafts stay on this computer. Publish sends your post and photos to your public GitHub repository.</p>
+<footer><span>Yiyang He / Studio</span><span>Art · Music · Yoyo · Math</span></footer>
+</main>
+</body></html>

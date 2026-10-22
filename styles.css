@@ -94,4 +94,21 @@ footer { display: flex; justify-content: space-between; gap: 15px; margin: 85px 
   .edition { font-size: 11px; letter-spacing: 1px; }
   nav { gap: 24px; }
 }
+.journal { margin-top: 65px; max-width: 760px; }
+.journal > h2 { font-size: 17px; font-weight: 400; }
+.journal-post { padding: 30px 0 50px; border-bottom: 1px solid #e6e6df; overflow-wrap: anywhere; }
+.post-date { color: var(--muted); font-size: 13px; }
+.post-title { font: 400 clamp(28px, 3vw, 40px)/1.3 var(--font-display); letter-spacing: -.5px; margin: 16px 0 25px; }
+.journal-post p { white-space: pre-wrap; line-height: 1.8; }
+.journal-post .post-summary { font-size: 20px; color: var(--muted); }
+.journal-post figure { margin: 30px 0; }
+.journal-post img { display: block; max-width: 100%; max-height: 80vh; width: auto; height: auto; margin: auto; }
+.journal-post iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; }
+.journal-post video, .journal-post audio { width: 100%; margin-top: 25px; }
+.journal-post h3 { font-size: 23px; font-weight: 400; }
+.journal-post mjx-container[display] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+.text-page:has(.journal-post) { max-width: 760px; }
+.text-page .journal { margin-top: 15px; }
+.text-page .journal-post p:not(.post-summary) { color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) { .journal-post { animation: arrive 500ms ease both; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }

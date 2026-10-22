@@ -40,9 +40,63 @@ Collections can be linked directly: `#art/chain`, `#art/light`, and `#art/order`
 
 Without JavaScript, all artwork and all four sections remain visible. The original `assets/` sample images are no longer used and need not be uploaded.
 
-## Adding content
+## Publishing studio
 
-- Edit the Music, Yoyo, and Math sections in `index.html` to add recordings, videos, and mathematical notes. They intentionally contain no invented projects or achievements.
+A private local app lets you write posts, upload photos, preview, and publish without editing the website's HTML. It matches the website's typography and white layout.
+
+### Start the app
+
+Requires **Python 3.9+** and **Git**, with no packages to install. From this folder:
+
+```sh
+python3 studio/server.py
+```
+
+The browser opens at **http://127.0.0.1:8765**. Keep the terminal open while using the studio; press Ctrl+C to stop. If the port is busy, run `STUDIO_PORT=8766 python3 studio/server.py`.
+
+1. Choose **Art**, **Music**, **Yoyo**, or **Math**, then write a title and post.
+2. Add photos and a description for each. JPEG, PNG, and WebP are supported (10 MB each, up to 30 per post); images retain their original proportions.
+3. Optionally add a YouTube/Vimeo video, a direct audio/video URL, or another HTTPS media link. Large videos stay on an external host rather than in Git.
+4. Click **Save draft** to keep it on this computer, or **Preview** to see the public rendering.
+5. Click **Publish to website**. The app writes the post, commits its content and selected photos, then pushes the current branch to `origin`. GitHub Pages normally updates within a few minutes.
+
+Published posts appear beneath existing artwork or in their corresponding Music, Yoyo, and Math pages. Select a published entry in the sidebar to edit and republish it. Discarding a local draft does not delete a published post. Original art collections are preserved; uploaded art appears as new posts, not as edits to the original gallery.
+
+**Formatting:** `# Heading`, `**bold**`, `*italic*`, `- list items`, and blank lines for paragraphs. HTML is displayed as text, never executed. Use `\(x^2\)` for inline math and `\[x^2\]` for display math. MathJax loads from jsDelivr only for posts containing math; offline, the original TeX stays visible. Media embeds need an internet connection and host permission to embed.
+
+### One-time GitHub setup
+
+The new renderer and studio files must be committed once before content publishing can work. Review these changes, then commit and push them on the branch configured for GitHub Pages:
+
+```sh
+git add .gitignore README.md index.html styles.css posts.js content/posts.json studio/
+git commit -m "feat: add local publishing studio"
+git push origin HEAD
+```
+
+This initial code deployment is separate from the studio's content-only commits. The studio refuses to publish while the public integration is uncommitted or unrelated changes are staged. Your Git author name/email and GitHub authentication must already work in the terminal. If needed, authenticate with `gh auth login` followed by `gh auth setup-git`, or configure an SSH remote. Never put a GitHub password/token in the app or repository. Publishing pushes **all existing commits on your current branch**, not just the new post, so use the GitHub Pages branch and avoid mixing unrelated work into it.
+
+If a push fails, the post remains committed locally and the draft is retained. Fix the login/network issue, then click **Retry push** (or run `git push origin HEAD` if you restarted the studio). A retained draft can then be discarded; this does not remove the published post. The app never force-pushes or automatically merges remote changes; if the remote has newer commits, reconcile them with Git first.
+
+### Storage and privacy
+
+- Drafts: `.studio/drafts.json` (ignored by Git). Back up this folder for drafts; drafts do not sync between computers.
+- Published content: `content/posts.json`; photos: `uploads/`. Only photos attached to the published post are automatically staged. Removed/unused photos are not automatically deleted from disk or Git history.
+- Photos retain their original bytes, including any metadata. Remove location/private metadata before publishing. Published content and uploaded photos committed to this public repository are public, including in Git history.
+- The server binds only to `127.0.0.1`, checks Host/Origin and a session token, and does not serve drafts or Git metadata. Do not expose it through a proxy/tunnel. The publicly hosted studio HTML cannot publish; publishing APIs exist only on your computer.
+- Public posts load via JavaScript over HTTP(S); use the local studio's **View website** link or the static preview server, not a `file://` URL. Without JavaScript, the original website content remains visible.
+
+Run integration tests (temporary repositories only):
+
+```sh
+python3 -m unittest discover -s studio -p 'test_*.py' -v
+node --check posts.js
+node --check studio/studio.js
+```
+
+## Editing the original static content
+
+- Edit the Music, Yoyo, and Math sections in `index.html` to change their empty-state copy. Published posts replace that copy.
 - Add artwork by copying a complete `figure.artwork` block into the gallery and setting its `data-series` to `chain`, `light`, or `order`.
 - Update static image numbering, series descriptions in `script.js`, and image width/height and alt text when changing images. The interactive counter calculates its total automatically.
 - Typography and layout are in `styles.css`. Josefin Sans and Alegreya load from Google Fonts, with Trebuchet MS and Georgia as their respective offline fallbacks.
@@ -55,7 +109,7 @@ Without JavaScript, all artwork and all four sections remain visible. The origin
 ## Publish on GitHub Pages
 
 1. Create a public repository named `dannyhe652.github.io` for an account-root website, or use a project repository.
-2. Upload `index.html`, `styles.css`, `script.js`, `.nojekyll`, and **all nine JPG files from the root directory**. Keep their names unchanged.
+2. Push this repository, including `index.html`, `styles.css`, `script.js`, `posts.js`, `content/`, `.nojekyll`, any published `uploads/`, and **all nine JPG files from the root directory**. Keep their names unchanged. Never upload `.studio/`.
 3. Under **Settings → Pages**, choose **Deploy from a branch → main → / (root)**.
 4. After deployment, the account-root website will be available at https://dannyhe652.github.io. A project repository uses https://dannyhe652.github.io/REPOSITORY-NAME/ instead.
 
