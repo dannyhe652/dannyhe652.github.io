@@ -56,9 +56,17 @@ The browser opens at **http://127.0.0.1:8765**. Keep the terminal open while usi
 
 1. Choose **Art**, **Music**, **Yoyo**, or **Math**, then write a title and post.
 2. Add photos and a description for each. JPEG, PNG, and WebP are supported (10 MB each, up to 30 per post); images retain their original proportions.
-3. Optionally add a YouTube/Vimeo video, a direct audio/video URL, or another HTTPS media link. Large videos stay on an external host rather than in Git.
+3. Click **+ Add MP4 video** to select a video from your computer (one per post, up to **50 MB**). Check the attached player, then save or publish as usual. You can replace it by selecting another video, or click **Remove video**. For larger videos, use a YouTube/Vimeo link or a direct HTTPS media URL instead.
 4. Click **Save draft** to keep it on this computer, or **Preview** to see the public rendering.
-5. Click **Publish to website**. The app writes the post, commits its content and selected photos, then pushes the current branch to `origin`. GitHub Pages normally updates within a few minutes.
+5. Click **Publish to website**. The app writes the post, commits its content and selected photos/video, then pushes the current branch to `origin`. GitHub Pages normally updates within a few minutes.
+
+### MP4 videos
+
+Uploaded videos play inline in Studio preview and on the public website, with playback controls and no autoplay. Use **H.264 video with AAC audio** for broad browser support; Studio checks the MP4 container but does not convert codecs. If a video does not play, export it using those settings. Local playback supports seeking.
+
+Videos are stored in `uploads/` and only the attached video is included when publishing a post. Saving a draft keeps the attachment on this computer; publishing commits and pushes the video to your public GitHub repository. Removing or replacing an attachment does not erase the old file or its Git history. Avoid private footage, and use external hosting for long videos to keep the repository small.
+
+After updating Studio, restart `python3 studio/server.py` and reload the browser. Commit and deploy the changed website/Studio code before publishing posts with uploaded videos; Studio protects against publishing with uncommitted renderer changes.
 
 Published posts appear beneath existing artwork or in their corresponding Music, Yoyo, and Math pages. Select a published entry in the sidebar to edit and republish it. Discarding a local draft does not delete a published post. Original art collections are preserved; uploaded art appears as new posts, not as edits to the original gallery.
 
@@ -124,8 +132,8 @@ If a push fails, the post remains committed locally and the draft is retained. F
 ### Storage and privacy
 
 - Drafts: `.studio/drafts.json` (ignored by Git). Back up this folder for drafts; drafts do not sync between computers.
-- Published content: `content/posts.json`; photos: `uploads/`. Only photos attached to the published post are automatically staged. Removed/unused photos are not automatically deleted from disk or Git history.
-- Photos retain their original bytes, including any metadata. Remove location/private metadata before publishing. Published content and uploaded photos committed to this public repository are public, including in Git history.
+- Published content: `content/posts.json`; photos and videos: `uploads/`. Only photos and the MP4 attached to the published post are automatically staged. Removed/unused media are not automatically deleted from disk or Git history.
+- Photos and videos retain their original bytes, including any metadata. Remove location/private metadata before publishing. Published content and uploaded media committed to this public repository are public, including in Git history.
 - The server binds only to `127.0.0.1`, checks Host/Origin and a session token, and does not serve drafts or Git metadata. Do not expose it through a proxy/tunnel. The publicly hosted studio HTML cannot publish; publishing APIs exist only on your computer.
 - Public posts load via JavaScript over HTTP(S); use the local studio's **View website** link or the static preview server, not a `file://` URL. Without JavaScript, the original website content remains visible.
 
@@ -133,7 +141,7 @@ Run integration tests (temporary repositories only):
 
 ```sh
 python3 -m unittest discover -s studio -p 'test_*.py' -v
-node --test tests/posts.test.js
+node --test tests/*.test.js
 node --check posts.js
 node --check studio/studio.js
 ```

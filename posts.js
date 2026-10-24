@@ -166,7 +166,13 @@ window.Posts = (() => {
       if (!/^uploads\/[a-f0-9]+\.(jpg|png|webp)$/.test(image.src)) return;
       const figure = element('figure'); const img = element('img'); img.src = image.src; img.alt = image.alt; img.loading = 'lazy'; figure.append(img); article.append(figure);
     });
-    body(article, post.body || ''); media(article, post.mediaUrl); return article;
+    body(article, post.body || '');
+    if (typeof post.videoSrc === 'string' && /^uploads\/[a-f0-9]{32}\.mp4$/.test(post.videoSrc)) {
+      const player = element('video'); player.controls = true; player.preload = 'metadata'; player.playsInline = true;
+      player.src = post.videoSrc; player.setAttribute('aria-label', `${post.title} — video`);
+      article.append(player);
+    }
+    media(article, post.mediaUrl); return article;
   }
   let mathReady;
   let mathQueue = Promise.resolve();

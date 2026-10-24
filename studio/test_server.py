@@ -52,7 +52,8 @@ class StudioTests(unittest.TestCase):
         connection = http.client.HTTPConnection('127.0.0.1', studio.PORT)
         defaults = {'Origin': studio.ORIGIN, 'X-Studio-Token': studio.TOKEN, 'Content-Type': 'application/json'}
         defaults.update(headers or {})
-        connection.request('POST' if data is not None else 'GET', path, json.dumps(data) if data is not None else None, defaults)
+        payload = data if isinstance(data, bytes) else json.dumps(data) if data is not None else None
+        connection.request('POST' if data is not None else 'GET', path, payload, defaults)
         response = connection.getresponse()
         body = response.read()
         status = response.status
@@ -93,6 +94,55 @@ class StudioTests(unittest.TestCase):
         self.assertIn(image, tracked)
         self.assertNotIn(unused, tracked)
         self.assertEqual(self.request('/api/upload', {'data': base64.b64encode(b'<svg/>').decode()})[0], 400)
+
+    def test_video_upload_draft_publish_edit_and_remove(self):
+        mp4 = b'\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom' + b'video payload'
+        code, upload = self.request('/api/upload-video', mp4, {'Content-Type': 'video/mp4'})
+        self.assertEqual(code, 200, upload)
+        video = upload['src']
+        unused = self.request('/api/upload-video', mp4)[1]['src']
+        self.assertEqual((studio.ROOT / video).read_bytes(), mp4)
+        self.assertEqual(self.request('/' + video), (200, mp4))
+        self.assertEqual(self.request('/' + video, headers={'Range': 'bytes=4-7'}), (206, b'ftyp'))
+        self.assertEqual(self.request('/' + video, headers={'Range': 'bytes=-7'}), (206, b'payload'))
+        self.assertEqual(self.request('/' + video, headers={'Range': 'bytes=24-'}), (206, b'video payload'))
+        self.assertEqual(self.request('/' + video, headers={'Range': 'bytes=9999-'}), (416, b''))
+        saved = self.request('/api/save', self.post | {'videoSrc': video})[1]['post']
+        self.assertEqual(self.request('/api/session')[1]['drafts'][0]['videoSrc'], video)
+        code, published = self.request('/api/publish', saved)
+        self.assertEqual(code, 200, published)
+        self.assertNotIn('pending', published)
+        self.assertIn(video, studio.git('ls-files').splitlines())
+        self.assertNotIn(unused, studio.git('ls-files').splitlines())
+        remote = subprocess.run(['git', '--git-dir', str(self.remote), 'show', f'main:{video}'], check=True, capture_output=True)
+        self.assertEqual(remote.stdout, mp4)
+        edited = published['post'] | {'videoSrc': '', 'title': 'Without video'}
+        self.assertEqual(self.request('/api/publish', edited)[0], 200)
+        self.assertEqual(self.request('/api/session')[1]['posts'][0]['videoSrc'], '')
+        self.assertTrue((studio.ROOT / video).exists())
+
+    def test_video_validation_and_security(self):
+        mp4 = b'\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom'
+        for raw in [b'', b'<html>not MP4</html>', b'\x89PNG\r\n\x1a\n',
+                    b'\x00\x00\x00\x18ftypqt  \x00\x00\x00\x00qt  qt  ',
+                    b'\x00\x00\xff\xffftypmp42\x00\x00\x00\x00']:
+            self.assertEqual(self.request('/api/upload-video', raw)[0], 400)
+        original_limit = studio.MAX_VIDEO_BYTES
+        try:
+            studio.MAX_VIDEO_BYTES = len(mp4) - 1
+            self.assertEqual(self.request('/api/upload-video', mp4)[0], 400)
+            studio.MAX_VIDEO_BYTES = len(mp4)
+            self.assertEqual(self.request('/api/upload-video', mp4)[0], 200)
+        finally:
+            studio.MAX_VIDEO_BYTES = original_limit
+        self.assertEqual(self.request('/api/upload-video', mp4, {'Origin': 'https://evil.example'})[0], 403)
+        self.assertEqual(self.request('/api/upload-video', mp4, {'X-Studio-Token': 'bad'})[0], 403)
+        for source in [None, 123, '../private.mp4', '/uploads/' + 'a' * 32 + '.mp4',
+                       'https://example.com/v.mp4', 'uploads/' + 'a' * 32 + '.mp4']:
+            self.assertEqual(self.request('/api/save', self.post | {'videoSrc': source})[0], 400, source)
+        self.assertEqual(self.request('/uploads/private.mp4')[0], 404)
+        self.assertEqual(self.request('/uploads/' + 'b' * 32 + '.mp4')[0], 404)
+        self.assertEqual(self.request('/api/upload', {'data': base64.b64encode(mp4).decode()})[0], 400)
 
     def test_markdown_parser_served(self):
         self.assertEqual(self.request('/assets/vendor/markdown-it.min.js')[0], 200)

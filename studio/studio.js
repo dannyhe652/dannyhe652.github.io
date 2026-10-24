@@ -1,11 +1,11 @@
 const form = document.querySelector('#editor');
 const status = document.querySelector('#status');
-let token, currentId = null, images = [], dirty = false, busy = false;
+let token, currentId = null, images = [], videoSrc = '', dirty = false, busy = false;
 const fields = ['category', 'title', 'summary', 'body', 'mediaUrl'];
 const names = { art: 'Art', music: 'Music', yoyo: 'Yoyo & Card Magic', math: 'Math' };
 function message(text, error = false) { status.textContent = text; status.classList.toggle('error', error); }
 function changed() { dirty = true; document.querySelector('#save-state').textContent = 'Unsaved changes'; }
-function value() { return Object.fromEntries(fields.map(key => [key, form.elements[key].value])) ; }
+function value() { return { ...Object.fromEntries(fields.map(key => [key, form.elements[key].value])), videoSrc }; }
 async function api(path, data) {
   const response = await fetch(`/api/${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Studio-Token': token }, body: JSON.stringify(data) });
   const result = await response.json(); if (!response.ok) throw new Error(result.error || 'Request failed'); return result;
@@ -28,7 +28,17 @@ function photoList() {
     remove.onclick = () => { images.splice(index, 1); photoList(); changed(); }; row.append(img, label, remove); list.append(row);
   });
 }
+function videoAttachment() {
+  const container = document.querySelector('#video-attachment'); container.replaceChildren();
+  if (!videoSrc) return;
+  const player = document.createElement('video'); player.src = '/' + videoSrc;
+  player.controls = true; player.preload = 'metadata'; player.playsInline = true; player.setAttribute('aria-label', 'Attached video');
+  const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remove video';
+  remove.onclick = () => { videoSrc = ''; videoAttachment(); changed(); };
+  container.append(player, remove);
+}
 function preview(show) {
+  document.querySelectorAll('#editor video, #preview video').forEach(player => player.pause());
   document.querySelector('#preview').hidden = !show; form.hidden = show;
   document.querySelector('#write').setAttribute('aria-pressed', String(!show)); document.querySelector('#preview-button').setAttribute('aria-pressed', String(show));
   if (show) {
@@ -37,15 +47,16 @@ function preview(show) {
 }
 function load(post) {
   if (busy || (dirty && !confirm('Leave this post without saving your latest changes?'))) return;
-  currentId = post?.id || null; images = structuredClone(post?.images || []);
+  currentId = post?.id || null; images = structuredClone(post?.images || []); videoSrc = post?.videoSrc || '';
+  videoAttachment();
   fields.forEach(key => form.elements[key].value = post?.[key] || (key === 'category' ? 'art' : ''));
   photoList(); dirty = false; preview(false); category();
   document.querySelector('#save-state').textContent = post ? 'Saved version loaded' : 'New draft · Not saved';
-  message('Drafts stay on this computer. Publish sends your post and photos to your public GitHub repository.');
+  message('Drafts stay on this computer. Publish sends your post, photos, and video to your public GitHub repository.');
 }
 function category() {
   const category = form.elements.category.value; document.querySelector('#category-label').textContent = names[category];
-  document.querySelector('#media-help').textContent = { art: 'Add artwork or photographs. Your original proportions are preserved.', music: 'Write about your music and add a recording link below.', yoyo: 'Share a trick or performance with a YouTube or Vimeo link.', math: 'Write your exploration with TeX notation and supporting images.' }[category];
+  document.querySelector('#media-help').textContent = { art: 'Add artwork or photographs. Your original proportions are preserved.', music: 'Write about your music and add a recording link below.', yoyo: 'Share a trick or performance with an MP4 upload or a YouTube or Vimeo link.', math: 'Write your exploration with TeX notation and supporting images.' }[category];
 }
 async function library() {
   const response = await fetch('/api/session'); if (!response.ok) throw new Error('Cannot connect to the local studio.');
@@ -66,7 +77,7 @@ document.querySelector('#save').onclick = () => task(async () => {
   document.querySelector('#save-state').textContent = 'Saved on this computer'; message(result.message); await library();
 });
 document.querySelector('#publish').onclick = () => {
-  if (!confirm('Publish this post and its photos to your public website? This commits and pushes to GitHub.')) return;
+  if (!confirm('Publish this post, photos, and video to your public website? This commits and pushes to GitHub.')) return;
   task(async () => {
     message('Saving and publishing… Keep this window open.');
     const result = await api('publish', { ...value(), id: currentId, images }); currentId = result.post.id; dirty = false;
@@ -77,7 +88,7 @@ document.querySelector('#publish').onclick = () => {
 document.querySelector('#retry').onclick = () => task(async () => { const result = await api('push', {}); message(result.message); document.querySelector('#retry').hidden = true; });
 document.querySelector('#delete').onclick = () => {
   if (!confirm('Discard this local draft? Any published version will stay on the website.')) return;
-  task(async () => { if (currentId) await api('delete', { id: currentId }); dirty = false; currentId = null; images = []; form.reset(); photoList(); category(); preview(false); message('Local draft discarded.'); document.querySelector('#save-state').textContent = 'New draft · Not saved'; await library(); });
+  task(async () => { if (currentId) await api('delete', { id: currentId }); dirty = false; currentId = null; images = []; videoSrc = ''; form.reset(); photoList(); videoAttachment(); category(); preview(false); message('Local draft discarded.'); document.querySelector('#save-state').textContent = 'New draft · Not saved'; await library(); });
 };
 document.querySelector('#photos').addEventListener('change', event => {
   const files = [...event.target.files];
@@ -90,6 +101,22 @@ document.querySelector('#photos').addEventListener('change', event => {
     }
     message('Photos added. Add a description for each, then save your draft.');
   }); event.target.value = '';
+});
+document.querySelector('#video').addEventListener('change', event => {
+  const file = event.target.files[0]; event.target.value = '';
+  if (!file) return;
+  task(async () => {
+    if (!/\.mp4$/i.test(file.name)) throw new Error('Choose an MP4 video.');
+    if (!file.size || file.size > 50 * 1024 * 1024) throw new Error('MP4 videos must be non-empty and at most 50 MB.');
+    message('Uploading video… Keep this window open.');
+    const response = await fetch('/api/upload-video', {
+      method: 'POST', headers: { 'Content-Type': 'video/mp4', 'X-Studio-Token': token }, body: file
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Video upload failed.');
+    videoSrc = result.src; changed(); videoAttachment();
+    message('Video added. Check playback, then save or publish your post.');
+  });
 });
 window.addEventListener('beforeunload', event => { if (dirty || busy) { event.preventDefault(); event.returnValue = ''; } });
 library().catch(error => message('Start this app with python3 studio/server.py. ' + error.message, true));

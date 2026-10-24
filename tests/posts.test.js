@@ -8,14 +8,14 @@ const markdownit = require('../assets/vendor/markdown-it.min.js');
 function renderer(setup) {
   const document = {
     createElement(tag) {
-      return { tag, children: [], append(...nodes) { this.children.push(...nodes); } };
+      return { tag, children: [], append(...nodes) { this.children.push(...nodes); }, setAttribute(key, value) { this[key] = value; } };
     },
     querySelector() { return null; }
   };
   const window = { markdownit };
   if (setup) setup(window, document);
   vm.runInNewContext(fs.readFileSync(require.resolve('../posts.js'), 'utf8'), {
-    window, document, location: { pathname: '/studio/' }
+    window, document, URL, location: { pathname: '/studio/' }
   });
   return window.Posts;
 }
@@ -23,6 +23,32 @@ function html(body) {
   const post = renderer().render({ id: 'test', title: 'Test', date: '2026-01-01', body });
   return post.children.find(node => node.className === 'post-body').innerHTML;
 }
+
+test('uploaded MP4 renders with relative paths, controls and no autoplay', () => {
+  const src = `uploads/${'a'.repeat(32)}.mp4`;
+  const post = renderer().render({ title: 'Performance', date: '2026-01-01', videoSrc: src });
+  const video = post.children.find(node => node.tag === 'video');
+  assert.equal(video.src, src); // Relative URL also works under GitHub project Pages.
+  assert.equal(video.controls, true);
+  assert.equal(video.playsInline, true);
+  assert.equal(video.preload, 'metadata');
+  assert.equal(video['aria-label'], 'Performance — video');
+  assert.equal(video.autoplay, undefined);
+});
+
+test('uploaded video rejects unsafe paths and remains optional for old posts', () => {
+  for (const videoSrc of [undefined, null, '', {}, 'javascript:alert(1)', 'https://example.com/v.mp4',
+    '/uploads/' + 'a'.repeat(32) + '.mp4', 'uploads/../private.mp4', 'uploads/a.mp4']) {
+    const post = renderer().render({ title: 'Test', date: '2026-01-01', videoSrc });
+    assert.equal(post.children.some(node => node.tag === 'video'), false);
+  }
+});
+
+test('external video links still render alongside an uploaded MP4', () => {
+  const post = renderer().render({ title: 'Test', date: '2026-01-01',
+    videoSrc: `uploads/${'a'.repeat(32)}.mp4`, mediaUrl: 'https://example.com/video.mp4' });
+  assert.equal(post.children.filter(node => node.tag === 'video').length, 2);
+});
 
 test('headings, emphasis, links, nested lists, quotes, tables and code', () => {
   const result = html('# Heading\n\n**Bold** *italic* ~~removed~~ [link](https://example.com)\n\n1. First\n   - Nested\n\n> Quote\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\n```js\nconst x = 1;\n```');

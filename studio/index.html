@@ -32,12 +32,15 @@
 <label class="upload-button" for="photos">+ Add photos<input id="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 <p class="field-note">JPEG, PNG, WebP · Up to 10 MB each · Add a description for each image.</p>
 <div id="images"></div>
+<label class="upload-button" for="video">+ Add MP4 video<input id="video" type="file" accept="video/mp4,.mp4" aria-describedby="video-help"></label>
+<p class="field-note" id="video-help">One MP4 per post · Up to 50 MB · H.264 video and AAC audio recommended. Larger videos: use a YouTube or Vimeo link below. Published files are public and stay in Git history.</p>
+<div id="video-attachment"></div>
 <label for="mediaUrl">Video, recording, or music link <span>(optional)</span></label><input id="mediaUrl" name="mediaUrl" type="url" placeholder="https://…" maxlength="2000"><p class="field-note">YouTube and Vimeo embed as video. Direct .mp3, .wav, .ogg, .m4a, .mp4, and .webm links play inline. Other links open at the source.</p>
 </div>
 </form>
 <section id="preview" aria-label="Post preview" hidden></section>
 <div class="publish-bar"><button type="button" id="save">Save draft</button><button type="button" id="delete">Discard local draft</button><button type="button" id="publish" class="primary">Publish to website ↗</button><button type="button" id="retry" hidden>Retry push</button></div>
-<p id="status" role="status" aria-live="polite">Drafts stay on this computer. Publish sends your post and photos to your public GitHub repository.</p>
+<p id="status" role="status" aria-live="polite">Drafts stay on this computer. Publish sends your post, photos, and video to your public GitHub repository.</p>
 <footer><span>Yiyang He / Studio</span><span>Art · Music · Yoyo &amp; Card Magic · Math</span></footer>
 </main>
 </body></html>
