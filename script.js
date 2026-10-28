@@ -7,7 +7,8 @@ const next = document.querySelector('#next');
 const descriptions = {
   chain: 'Chain · Three oil paintings · 2023',
   light: 'Light and Shadows · Suzhou gardens · 2024',
-  order: 'Between Order and Chaos · Digital painting · 2025'
+  order: 'Between Order and Chaos · Digital painting · 2025',
+  artrock: 'Art Rock · Six generative paintings · 2026'
 };
 let activeSeries = 'chain';
 let current = 0;
