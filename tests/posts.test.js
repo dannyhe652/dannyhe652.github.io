@@ -169,6 +169,47 @@ test('environment titles and content cannot inject HTML', () => {
   assert.match(result, /&quot;title&quot;/);
 });
 
+test('top-level display math environments render verbatim for MathJax', () => {
+  for (const name of ['equation', 'align', 'gather', 'multline', 'alignat', 'flalign', 'eqnarray', 'CD']) {
+    const argument = name === 'alignat' ? '{2}' : '';
+    const result = html(`Before.\n\\begin{${name}}${argument}\na = b\n\\end{${name}}\nAfter.`);
+    assert.match(result, /<div class="tex-math">/);
+    assert.ok(result.includes(`\\begin{${name}}${argument}`), `opens ${name}${argument}`);
+    assert.ok(result.includes(`\\end{${name}}`), `closes ${name}`);
+    assert.doesNotMatch(result, /tex-math">\\\[/); // Bare environment, not \[ ... \].
+    assert.match(result, /<p>Before\.<\/p>/);
+    assert.match(result, /<p>After\.<\/p>/);
+  }
+});
+
+test('starred display environments and ampersand alignment survive escaping', () => {
+  const result = html('\\begin{align*}\nx &= 1 \\\\\ny &= 2\n\\end{align*}');
+  assert.match(result, /<div class="tex-math">/);
+  assert.ok(result.includes('\\begin{align*}'));
+  assert.ok(result.includes('\\end{align*}'));
+  assert.match(result, /x &amp;= 1/);
+});
+
+test('display math environments nest inside text environments without breaking them', () => {
+  const result = html('\\begin{theorem}[Named]\nStatement.\n\\begin{align}\na &= b\n\\end{align}\nDone.\n\\end{theorem}\nAfter.');
+  assert.match(result, /class="math-environment math-environment-theorem"/);
+  assert.match(result, /\(Named\)\.<\/p>/);
+  assert.match(result, /<div class="tex-math">/);
+  assert.ok(result.includes('\\begin{align}'));
+  assert.match(result, /<\/section>\s*<p>After\.<\/p>/);
+});
+
+test('display math environment delimiters inside code stay literal', () => {
+  assert.doesNotMatch(html('```tex\n\\begin{align}\na=b\n\\end{align}\n```'), /<div class="tex-math">/);
+  assert.doesNotMatch(html('    \\begin{equation}\n    a=b\n    \\end{equation}'), /<div class="tex-math">/);
+});
+
+test('unclosed and mismatched display environments remain ordinary text', () => {
+  for (const input of ['\\begin{align}\nDraft only.', '\\begin{align}\na=b\n\\end{equation}']) {
+    assert.doesNotMatch(html(input), /<div class="tex-math">/);
+  }
+});
+
 test('posts without math do not request MathJax', async () => {
   await renderer().typeset({ querySelectorAll() { return []; } });
 });

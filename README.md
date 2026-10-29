@@ -83,6 +83,8 @@ The studio preview and public posts share the same Markdown renderer (locally bu
 
 Use `\(x^2\)` or `$x^2$` for inline math, and `\[...\]` or `$$...$$` for display math. Display delimiters can sit on their own lines; multiline equations, blank lines inside display blocks, fractions, matrices, and aligned equations are supported. Math is kept untouched by Markdown, and delimiters in code stay literal. Escape a literal dollar as `\$`; single-dollar math must not have whitespace immediately inside its delimiters.
 
+Top-level AMS display environments — `equation`, `align`, `gather`, `multline`, `alignat`, `flalign`, `eqnarray`, and `CD` — may appear on their own lines without `\[...\]` wrapping and keep LaTeX equation numbering, `\tag{…}`, and multi-column alignment. Starred variants (`align*`, `equation*`, …) suppress numbering. `alignat` accepts its column-count argument, for example `\begin{alignat}{2}`. These environments may be nested inside text environments such as `theorem` or `proof`.
+
 ```tex
 An inline identity: \(e^{i\pi} + 1 = 0\).
 
@@ -92,6 +94,15 @@ f(x) &= \frac{x^2}{2} \\
 f'(x) &= x
 \end{aligned}
 \]
+
+\begin{align}
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\varepsilon_0} \\
+\nabla \cdot \mathbf{B} &= 0
+\end{align}
+
+\begin{equation}
+\zeta(s) = \sum_{n=1}^{\infty} \frac{1}{n^s}
+\end{equation}
 ```
 
 ### Mathematical environments

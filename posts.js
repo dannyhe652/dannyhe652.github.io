@@ -57,6 +57,35 @@ window.Posts = (() => {
     token.map = [start, last + 1]; state.line = last + 1;
     return true;
   }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
+  // Top-level AMS display environments. These are display math themselves and
+  // must not be wrapped in \[ ... \]; MathJax typesets them in place and keeps
+  // LaTeX equation numbering, tags, and multi-column alignment.
+  const mathEnvironmentPattern = ['equation', 'align', 'gather', 'multline', 'alignat', 'flalign', 'eqnarray', 'CD']
+    .flatMap(name => [name, name + '\\*']).join('|');
+  const mathEnvironmentStart = new RegExp(`^\\\\begin\\{(${mathEnvironmentPattern})\\}(?:\\{[^}\\n]*\\})?\\s*$`);
+  const mathEnvironmentEnd = new RegExp(`^\\\\end\\{(${mathEnvironmentPattern})\\}\\s*$`);
+  markdown.block.ruler.before('fence', 'math_env_display', (state, start, end, silent) => {
+    if (state.sCount[start] - state.blkIndent >= 4) return false;
+    const lineText = line => state.src.slice(state.bMarks[line] + state.tShift[line], state.eMarks[line]);
+    const opening = lineText(start).match(mathEnvironmentStart);
+    if (!opening) return false;
+    let last = start + 1;
+    for (; last < end; last++) {
+      if (state.sCount[last] - state.blkIndent >= 4) continue;
+      const closing = lineText(last).match(mathEnvironmentEnd);
+      if (closing && closing[1] === opening[1]) break;
+    }
+    if (last === end) return false; // Incomplete drafts remain ordinary text.
+    if (silent) return true;
+    const lines = [];
+    for (let i = start; i <= last; i++) lines.push(lineText(i));
+    const token = state.push('math_env_display', '', 0);
+    token.block = true; token.content = lines.join('\n');
+    token.map = [start, last + 1]; state.line = last + 1;
+    return true;
+  }, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
+  markdown.renderer.rules.math_env_display = (tokens, index) =>
+    `<div class="tex-math">${markdown.utils.escapeHtml(tokens[index].content)}</div>\n`;
   // Text environments are Markdown blocks, not MathJax equations. Only known
   // names become markup; titles and bodies still pass through safe renderers.
   const environments = {
@@ -91,6 +120,15 @@ window.Posts = (() => {
           while (last + 1 < end && state.eMarks[last] < math.end) last++;
           continue;
         }
+      }
+      const nestedMath = line.match(mathEnvironmentStart);
+      if (nestedMath) {
+        while (last + 1 < end) {
+          last++;
+          const closeMath = lineText(last).match(mathEnvironmentEnd);
+          if (closeMath && closeMath[1] === nestedMath[1]) break;
+        }
+        continue;
       }
       const nested = line.match(environmentStart);
       if (nested) { stack.push(canonicalEnvironment(nested[1])); continue; }
@@ -180,7 +218,7 @@ window.Posts = (() => {
     const nodes = [...container.querySelectorAll('.tex-math')];
     if (!nodes.length) return Promise.resolve();
     if (!mathReady) {
-      window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']], packages: { '[+]': ['noerrors'] } }, options: { enableMenu: false }, startup: { typeset: false }, loader: { load: ['[tex]/noerrors', 'ui/safe'] } };
+      window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']], processEnvironments: true, packages: { '[+]': ['noerrors'] } }, options: { enableMenu: false }, startup: { typeset: false }, loader: { load: ['[tex]/noerrors', 'ui/safe'] } };
       mathReady = new Promise((resolve, reject) => {
         const script = document.createElement('script'); script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js'; script.onload = resolve; script.onerror = reject; document.head.append(script);
       });
